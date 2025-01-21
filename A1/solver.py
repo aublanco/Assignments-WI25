@@ -26,7 +26,10 @@ class Node:
          - self includes node in self.neighbors
          - node includes self in node.neighbors (undirected)
         """
-        # TODO: Implement adding a neighbor in an undirected manner
+        if node not in self.neighbors:
+            self.neighbors.append(node)
+        if self not in node.neighbors:
+            node.neighbors.append(self)
         pass
 
     def __repr__(self):
@@ -54,15 +57,23 @@ def parse_maze_to_graph(maze):
     nodes_dict = {}
 
     # 1) Create a Node for each open cell
+    for r in range(rows):
+        for c in range(cols):
+            if maze[r][c] == 0:
+                nodes_dict[(r,c)] = Node((r,c))
     # 2) Link each node with valid neighbors in four directions (undirected)
+    for (r,c), node in nodes_dict.items():
+        for dr, dc in [(-1, 0), (1,0), (0,-1), (0, 1)]:
+            nr, nc = r + dr, c + dc
+            if (nr, nc) in nodes_dict:
+                node.add_neighbor(nodes_dict[(nr, nc)])
     # 3) Identify start_node (if (0,0) is open) and goal_node (if (rows-1, cols-1) is open)
-
-    # TODO: Implement the logic to build nodes and link neighbors
 
     start_node = None
     goal_node = None
 
-    # TODO: Assign start_node and goal_node if they exist in nodes_dict
+    start_node = nodes_dict.get((0,0), None)
+    goal_node = nodes_dict.get((rows-1, cols-1), None)
 
     return nodes_dict, start_node, goal_node
 
@@ -81,7 +92,28 @@ def bfs(start_node, goal_node):
       2. Track visited nodes so you don’t revisit.
       3. Also track parent_map to reconstruct the path once goal_node is reached.
     """
-    # TODO: Implement BFS
+    if start_node is None or goal_node is None:
+        return None
+    
+    visited = set()
+    queue = deque([start_node])
+    parent_map = {start_node: None}
+
+    while queue:
+        node = queue.popleft()
+        if node == goal_node:
+            path = []
+            while node is not None:
+                path.append(node.value)
+                node = parent_map[node]
+            path.reverse()
+            return path
+        
+        for neighbor in node.neighbors:
+            if neighbor not in visited:
+                queue.append(neighbor)
+                visited.add(neighbor)
+                parent_map[neighbor] = node
     return None
 
 
