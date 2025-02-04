@@ -39,8 +39,11 @@ def find_empty_cell(board):
         - If there is an empty cell, returns (row_index, col_index).
         - If there are no empty cells, returns None.
     """
-    # TODO: implement
-    pass
+    for row_index in range(9):
+        for col_index in range(9):
+            if board[row_index][col_index] == 0:
+                return (row_index, col_index)
+    return None
 
 
 def is_valid(board, row, col, num):
@@ -59,8 +62,22 @@ def is_valid(board, row, col, num):
     Returns:
     bool: True if valid, False otherwise.
     """
-    # TODO: implement
-    pass
+    for col_index in range(9):
+        if board[row][col_index] == num:
+            return False
+        
+    for row_index in range(9):
+        if board[row_index][col] == num:
+            return False
+        
+    box_row = row // 3 * 3
+    box_col = col // 3 * 3
+    for row_index in range(box_row, box_row + 3):
+        for col_index in range(box_col, box_col + 3):
+            if board[row_index][col_index] == num:
+                return False
+            
+    return True
 
 
 def solve_sudoku(board):
@@ -75,8 +92,22 @@ def solve_sudoku(board):
         - True if the puzzle is solved successfully.
         - False if the puzzle is unsolvable.
     """
-    # TODO: implement
-    pass
+    empty = find_empty_cell(board)
+
+    if not empty:
+        return True
+    
+    row, col = empty
+    for num in range(1,10):
+        if is_valid(board, row, col, num):
+            board[row][col] = num
+
+            if solve_sudoku(board):
+                return True
+            board[row][col] = 0
+
+    return False
+
 
 
 def is_solved_correctly(board):
@@ -92,24 +123,41 @@ def is_solved_correctly(board):
     Returns:
     bool: True if the board is correctly solved, False otherwise.
     """
-    # TODO: implement
-    pass
+    def is_valid_group(group):
+        return sorted(group) == list(range(1,10))
+    
+    for row in board:
+        if not is_valid_group(row):
+            return False
+        
+    for col in range(9):
+        if not is_valid_group([board[row][col] for row in range (9)]):
+            return False
+    
+    for box_row in range(3):
+        for box_col in range(3):
+            box = [board[row][col] for row in range(box_row * 3, (box_row + 1) * 3)
+                                    for col in range(box_col * 3, (box_col + 1) * 3)]
+            if not is_valid_group(box):
+                return False
+      
+    return True
 
 
 if __name__ == "__main__":
     # Example usage / debugging:
     example_board = [
-        [7, 8, 0, 4, 0, 0, 1, 2, 0],
-        [6, 0, 0, 0, 7, 5, 0, 0, 9],
-        [0, 0, 0, 6, 0, 1, 0, 7, 8],
-        [0, 0, 7, 0, 4, 0, 2, 6, 0],
-        [0, 0, 1, 0, 5, 0, 9, 3, 0],
-        [9, 0, 4, 0, 6, 0, 0, 0, 5],
-        [0, 7, 0, 3, 0, 0, 0, 1, 2],
-        [1, 2, 0, 0, 0, 7, 4, 0, 0],
-        [0, 4, 9, 2, 0, 6, 0, 0, 7],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 3, 0, 8, 5],
+        [0, 0, 1, 0, 2, 0, 0, 0, 0],
+        [0, 0, 0, 5, 0, 7, 0, 0, 0],
+        [0, 0, 4, 0, 0, 0, 1, 0, 0],
+        [0, 9, 0, 0, 0, 0, 0, 0, 0],
+        [5, 0, 0, 0, 0, 0, 0, 7, 3],
+        [0, 0, 2, 0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 4, 0, 0, 0, 9],
     ]
 
-    print("Debug: Original board:\n")
-    print_board(example_board)
+
     # TODO: Students can call their solve_sudoku here once implemented and check if they got a correct solution.
+    
