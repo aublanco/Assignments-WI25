@@ -15,10 +15,15 @@ def initialize_q_table(state_bins: dict, action_bins: list) -> np.ndarray:
     Returns:
         np.ndarray: A Q-table initialized to zeros with dimensions matching the state and action space.
     """
-    # TODO: Implement this function
-    ...
+    state_shape = tuple(
+        len(np.asarray(b).flatten()) + 1
+        for key, bins in sorted(state_bins.items())
+        for b in bins
+    )
     
-
+    q_shape = state_shape + (len(action_bins),)
+    q_table = np.zeros(q_shape, dtype = float)
+    return q_table
 
 # TD Learning algorithm
 def td_learning(env: Environment, num_episodes: int, alpha: float, gamma: float, epsilon: float, state_bins: dict, action_bins: list, q_table:np.ndarray=None) -> tuple:
@@ -44,16 +49,44 @@ def td_learning(env: Environment, num_episodes: int, alpha: float, gamma: float,
     rewards = []
 
     for episode in tqdm(range(num_episodes), desc="Training Episodes"):
-        # reset env
-        
-        # run the episode
-            # select action
-            # take action
-            # quantize the next state
-            # update Q-table
-            # if it is the last timestep, break
-        # keep track of the reward
-        ...
+        time_step = env.reset()
+        state_index = quantize_state(time_step.observation, state_bins)
+        done = False
+        ep_reward = 0
+
+        if np.random.rand() < epsilon:
+            action = np.random.choice(action_bins)
+        else: 
+            best_action = int(np.argmax(q_table[state_index]))
+            action = action_bins[best_action]
+        action_index = quantize_action(action, action_bins)
+
+        while not done:
+            time_step = env.step(action_bins[action_index])
+            next_state_index = quantize_state(time_step.observation, state_bins)
+            reward = time_step.reward
+
+            max_next_q = np.max(q_table[next_state_index])
+
+            q_table[state_index + (action_index,)] += alpha*(
+                reward + gamma * max_next_q - q_table[state_index + (action_index,)] 
+                - q_table[state_index + (action_index,)]
+            )
+            
+            state_index = next_state_index
+
+            if np.random.rand() < epsilon:
+                action = np.random.choice(action_bins)
+            else:
+                best_action = int(np.argmax(q_table[state_index]))
+                action = action_bins[best_action]
+            action_index = quantize_action(action, action_bins)
+            
+            ep_reward += reward
+
+            done = time_step.last()
+
+        rewards.append(ep_reward)
 
     return q_table, rewards
 

@@ -14,15 +14,18 @@ def quantize_state(state: dict, state_bins: dict) -> tuple:
     Returns:
         tuple: The quantized representation of the state.
     """
-    # TODO
-    ...
-
+    state_index = []
+    for key in sorted(state.keys()):
+        for v, b in zip(state[key], state_bins[key]):
+            b_arr = np.asarray(b).flatten()
+            bin_index = int(np.digitize(v, b_arr))
+            state_index.append(bin_index)
+    return tuple(state_index)
 
 def quantize_action(action: float, bins: list) -> int:
     """
     Quantize the action based on the provided bins. 
     """
-    # TODO
-    ...
+    return int(np.digitize(action, bins)) -1
 
 
